@@ -58,12 +58,10 @@ class LinkedList extends AbstractLinkedList
       $this->addFirstElement($node);
       return;
     }
-    // dwd($this->tail);
     $old_tail = $this->tail;
     $node->prev = $old_tail;
     $old_tail->next = $node;
     $this->tail = $node;
-    // return true;
   }
 
   public function prepend($value): void
@@ -78,7 +76,6 @@ class LinkedList extends AbstractLinkedList
     $node->next = $old_head;
     $old_head->prev = $node;
     $this->head = $node;
-    // return true;
   }
 
   private function checkIndex(int $index): ?\Exception
@@ -162,13 +159,3 @@ class LinkedList extends AbstractLinkedList
   }
 
 }
-
-// $linked_list = new LinkedList('hi', 'bitch', 'hello');
-// $linked_list->append('xD');
-// dwd($linked_list->removeAt(3));
-// $first_element = $linked_list->get(0);
-// dwd($linked_list->remove($first_element));
-// $linked_list->insertAt('xD', 0);
-// $linked_list->get(0)->value = 'no nie e';
-// dwd($linked_list);
-// dwd($linked_list->unshift());

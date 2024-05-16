@@ -2,8 +2,6 @@
 
 namespace Src;
 
-// use Src\Abstract\Node as AbstractNode;
-
 abstract class AbstractNode
 {
   public $value;
