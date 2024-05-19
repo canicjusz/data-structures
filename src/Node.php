@@ -11,12 +11,9 @@ abstract class AbstractNode
 
 class Node extends AbstractNode
 {
-  public $value;
-  public ?Node $next;
-  public ?Node $prev;
-  public function __construct($value)
+  public ?Node $next = null;
+  public ?Node $prev = null;
+  public function __construct(public $value, public readonly string $list_uid)
   {
-    $this->value = $value;
-    $this->next = $this->prev = null;
   }
 }

@@ -13,11 +13,11 @@ abstract class AbstractLinkedList
   private int $length;
 
   abstract public function length(): int;
-  abstract public function insertAt($value, int $index): ?\Exception;
-  abstract public function remove(Node $item): void;
+  abstract public function insertAt($value, int $index): Node|\Exception;
+  abstract public function remove(Node $item): ?\Exception;
   abstract public function removeAt(int $index): Node;
-  abstract public function prepend($value): void;
-  abstract public function append($value): void;
+  abstract public function prepend($value): Node;
+  abstract public function append($value): Node;
   abstract public function pop(): Node|null;
   abstract public function unshift(): Node|null;
   abstract public function get(int $index): Node|\Exception;
@@ -25,14 +25,13 @@ abstract class AbstractLinkedList
 
 class LinkedList extends AbstractLinkedList
 {
-  public ?Node $head;
-  public ?Node $tail;
-  private int $length;
+  public ?Node $head = null;
+  public ?Node $tail = null;
+  private int $length = 0;
+  public readonly string $uid;
   public function __construct(...$values)
   {
-    $this->length = 0;
-    $this->head = $this->tail = null;
-
+    $this->uid = uniqid();
     foreach ($values as $value) {
       $this->append($value);
     }
@@ -45,58 +44,57 @@ class LinkedList extends AbstractLinkedList
 
   private function addFirstElement(Node $node): void
   {
-    if (!$this->tail) {
-      $this->tail = $this->head = $node;
-    }
+    $this->tail = $this->head = $node;
   }
 
-  public function append($value): void
+  public function append($value): Node
   {
     $this->length++;
-    $node = new Node($value);
+    $node = new Node($value, $this->uid);
     if (!$this->tail) {
       $this->addFirstElement($node);
-      return;
+      return $node;
     }
     $old_tail = $this->tail;
     $node->prev = $old_tail;
     $old_tail->next = $node;
     $this->tail = $node;
+    return $node;
   }
 
-  public function prepend($value): void
+  public function prepend($value): Node
   {
     $this->length++;
-    $node = new Node($value);
+    $node = new Node($value, $this->uid);
     if (!$this->tail) {
       $this->addFirstElement($node);
-      return;
+      return $node;
     }
     $old_head = $this->head;
     $node->next = $old_head;
     $old_head->prev = $node;
     $this->head = $node;
+    return $node;
   }
 
-  private function checkIndex(int $index): ?\Exception
+  private function checkIndex(int $index, bool $allowSameAsLength = false): ?\Exception
   {
-    if ($index >= $this->length || $index < 0) {
+    $rightBoundary = $allowSameAsLength ? $index > $this->length : $index >= $this->length;
+    if ($index < 0 || $rightBoundary) {
       throw new \Exception("The index exceedes the length of the list.");
     }
     return null;
   }
 
-  public function insertAt($value, int $index): ?\Exception
+  public function insertAt($value, int $index): Node|\Exception
   {
-    $this->checkIndex($index);
+    $this->checkIndex($index, true);
     if ($index === 0) {
-      $this->prepend($value);
-      return null;
-    } else if ($index === $this->length - 1) {
-      $this->append($value);
-      return null;
+      return $this->prepend($value);
+    } else if ($index === $this->length) {
+      return $this->append($value);
     }
-    $curr_node = new Node($value);
+    $curr_node = new Node($value, $this->uid);
     $next_node = $this->get($index);
     $previous_node = $next_node->prev;
 
@@ -105,9 +103,16 @@ class LinkedList extends AbstractLinkedList
 
     $next_node->prev = $curr_node;
     $curr_node->next = $next_node;
+
+    $this->length++;
+
+    return $curr_node;
   }
-  public function remove(Node $item): void
+  public function remove(Node $item): ?\Exception
   {
+    if ($item->list_uid !== $this->uid) {
+      throw new \Exception("The node doesn't belong to this list");
+    }
     if (isset($item->prev)) {
       $item->prev->next = $item->next;
     } else {
@@ -119,6 +124,7 @@ class LinkedList extends AbstractLinkedList
       $this->tail = $item->prev;
     }
     $this->length--;
+    return null;
   }
 
   public function get(int $index): Node|\Exception
